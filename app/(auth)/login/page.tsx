@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { supabase } from "@/lib/supabaseClient";
 
@@ -10,6 +11,26 @@ export default function LoginPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const searchParams = useSearchParams();
+  const hasHydratedParamsRef = useRef(false);
+
+  useEffect(() => {
+    if (hasHydratedParamsRef.current) {
+      return;
+    }
+
+    const errorParam = searchParams.get("error");
+    if (errorParam) {
+      setError(errorParam);
+    }
+
+    const messageParam = searchParams.get("message");
+    if (messageParam) {
+      setMessage(messageParam);
+    }
+
+    hasHydratedParamsRef.current = true;
+  }, [searchParams]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -26,10 +47,14 @@ export default function LoginPage() {
       return;
     }
 
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(
+      "/dashboard"
+    )}`;
+
     const { error } = await supabase.auth.signInWithOtp({
       email: trimmedEmail,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: redirectTo,
         data: { display_name: trimmedName },
         shouldCreateUser: true,
       },
