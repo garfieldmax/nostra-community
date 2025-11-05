@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { supabase } from "@/lib/supabaseClient";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -116,5 +116,22 @@ export default function LoginPage() {
         {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-slate-50 px-4 py-10">
+        <div className="w-full max-w-sm space-y-6 rounded-xl border bg-white p-6 shadow-sm">
+          <div className="space-y-2 text-center">
+            <h1 className="text-2xl font-semibold text-slate-900">Welcome back</h1>
+            <p className="text-sm text-slate-500">Loading...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

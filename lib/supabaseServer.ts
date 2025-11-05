@@ -24,8 +24,9 @@ export async function supabaseServer() {
         set: (name: string, value: string, options: CookieOptions) => {
           cookieStore.set(name, value, options);
         },
-        remove: (name: string, options: CookieOptions) => {
-          cookieStore.delete(name, options);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        remove: (name: string, _options: CookieOptions) => {
+          cookieStore.delete(name);
         },
       },
     });

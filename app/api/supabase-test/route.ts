@@ -76,7 +76,7 @@ export async function GET() {
       errorMessage.includes("timeout");
 
     diagnostics.overallStatus = "error";
-    diagnostics.error = {
+    const errorDiagnostics: Record<string, unknown> = {
       message: errorMessage,
       isNetworkError,
       errorType: error instanceof Error ? error.constructor.name : typeof error,
@@ -84,9 +84,11 @@ export async function GET() {
     };
 
     if (isNetworkError) {
-      diagnostics.error.networkDiagnosis =
+      errorDiagnostics.networkDiagnosis =
         "This appears to be a DNS/network connectivity issue. Check your network connection and DNS settings. IPv6 issues may cause this.";
     }
+
+    diagnostics.error = errorDiagnostics;
 
     console.error("[API Test] Connection test failed:", diagnostics.error);
   }

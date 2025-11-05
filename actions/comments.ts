@@ -40,7 +40,14 @@ export async function listComments(
       throw error;
     }
 
-    return data ?? [];
+    // Transform Supabase response to match CommentWithAuthor type
+    // Supabase returns profiles as an array, but we need a single object
+    return (data ?? []).map((comment) => ({
+      ...comment,
+      profiles: Array.isArray(comment.profiles) && comment.profiles.length > 0
+        ? comment.profiles[0]
+        : null,
+    }));
   } catch {
     return DEMO_COMMENTS.filter(
       (comment) => comment.subject_type === subject_type && comment.subject_id === subject_id
