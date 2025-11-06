@@ -80,7 +80,7 @@ async function verifyToken(token: string): Promise<PrivySession> {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
-      "privy-app-id": PRIVY_APP_ID,
+      "privy-app-id": PRIVY_APP_ID!,
     },
   });
 

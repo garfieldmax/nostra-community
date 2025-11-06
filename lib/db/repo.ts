@@ -108,7 +108,7 @@ export async function listMemberInterests(memberId: string): Promise<Interest[]>
     .select("interests(*)")
     .eq("member_id", memberId);
   if (error) handleError(error);
-  return (data ?? []).map((row: { interests: Interest }) => row.interests);
+  return (data ?? []).map((row) => row.interests as unknown as Interest);
 }
 
 export async function listMemberGoals(memberId: string): Promise<MemberGoal[]> {

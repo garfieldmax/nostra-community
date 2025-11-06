@@ -5,14 +5,15 @@ import { updateConnectionStatus } from "@/lib/db/repo";
 import { toErrorResponse, ValidationError } from "@/lib/errors";
 
 interface RouteParams {
-  params: { toMemberId: string };
+  params: Promise<{ toMemberId: string }>;
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
   try {
+    const { toMemberId } = await params;
     const { memberId } = await getAuthenticatedMember(request);
     const json = await request.json();
-    const parsed = ConnectionUpdateSchema.safeParse({ ...json, to_member_id: params.toMemberId });
+    const parsed = ConnectionUpdateSchema.safeParse({ ...json, to_member_id: toMemberId });
     if (!parsed.success) {
       throw new ValidationError("Invalid connection update payload", parsed.error.flatten());
     }

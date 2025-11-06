@@ -6,13 +6,14 @@ import { createMemberContact } from "@/lib/db/repo";
 import { AuthorizationError, toErrorResponse, ValidationError } from "@/lib/errors";
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function POST(request: Request, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const { memberId } = await getAuthenticatedMember(request);
-    if (memberId !== params.id) {
+    if (memberId !== id) {
       throw new AuthorizationError("You can only manage your own contacts");
     }
     const json = await request.json();

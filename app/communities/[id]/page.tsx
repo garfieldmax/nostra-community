@@ -4,13 +4,14 @@ import { getCommunityWithChildren, listResidencies, listProjects } from "@/lib/d
 import { Card } from "@/components/ui/Card";
 
 interface CommunityPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export const dynamic = "force-dynamic";
 
 export default async function CommunityPage({ params }: CommunityPageProps) {
-  const community = await getCommunityWithChildren(params.id).catch(() => null);
+  const { id } = await params;
+  const community = await getCommunityWithChildren(id).catch(() => null);
   if (!community) {
     notFound();
   }

@@ -11,7 +11,7 @@ interface ConnectSheetProps {
   relations?: Array<{ value: "follow" | "friend" | "collaborator"; label: string }>;
 }
 
-const DEFAULT_RELATIONS: ConnectSheetProps["relations"] = [
+const DEFAULT_RELATIONS: Array<{ value: "follow" | "friend" | "collaborator"; label: string }> = [
   { value: "follow", label: "Follow" },
   { value: "friend", label: "Friend" },
   { value: "collaborator", label: "Collaborator" },
@@ -59,7 +59,7 @@ export function ConnectSheet({ open, onClose, onSubmit, relations = DEFAULT_RELA
           <label className="flex flex-col gap-1 text-sm text-slate-700">
             Relation
             <Select value={relation} onChange={(event) => setRelation(event.target.value as typeof relation)}>
-              {relations.map((item) => (
+              {(relations || DEFAULT_RELATIONS).map((item) => (
                 <option key={item.value} value={item.value}>
                   {item.label}
                 </option>

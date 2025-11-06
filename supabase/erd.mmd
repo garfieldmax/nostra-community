@@ -1,0 +1,150 @@
+erDiagram
+  MEMBERS ||--o{ MEMBER_CONTACTS : has
+  MEMBERS ||--o{ MEMBER_INTERESTS : has
+  MEMBERS ||--o{ MEMBER_GOALS : sets
+  MEMBERS ||--o{ PROJECT_PARTICIPATION : participates
+  MEMBERS ||--o{ KUDOS : receives
+  MEMBERS ||--o{ MEMBER_BADGES : earns
+  MEMBERS ||--o{ MEMBER_CONNECTIONS : "from_member"
+  MEMBERS ||--o{ MEMBER_CONNECTIONS : "to_member"
+  MEMBERS ||--o{ COMMENTS : "as subject(member)"
+  COMMUNITIES ||--o{ RESIDENCIES : contains
+  COMMUNITIES ||--o{ PROJECTS : hosts
+  RESIDENCIES ||--o{ PROJECTS : hosts
+  PROJECTS ||--o{ PROJECT_PARTICIPATION : has
+  PROJECTS ||--o{ KUDOS : "context"
+  PROJECTS ||--o{ COMMENTS : "as subject(project)"
+  INTERESTS ||--o{ MEMBER_INTERESTS : tags
+  BADGES ||--o{ MEMBER_BADGES : awarded
+  COMMENTS }o--|| COMMUNITIES : "as subject(community)"
+  COMMENTS }o--|| RESIDENCIES : "as subject(residency)"
+
+  MEMBERS {
+    text id PK        "Privy DID / external ID"
+    text display_name
+    text avatar_url
+    text level        "unchecked | in_person | guest | resident | manager"
+    text bio
+    int  reputation_score
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  MEMBER_CONTACTS {
+    uuid id PK
+    text member_id FK -> MEMBERS.id
+    enum kind       "x | substack | instagram | website | email | phone | telegram | whatsapp"
+    text handle
+    text url
+    bool is_public
+    timestamptz created_at
+  }
+
+  INTERESTS {
+    uuid id PK
+    text label
+    enum kind       "hobby | skill | topic"
+  }
+
+  MEMBER_INTERESTS {
+    text member_id   FK -> MEMBERS.id
+    uuid interest_id FK -> INTERESTS.id
+    PK "member_id + interest_id"
+  }
+
+  MEMBER_GOALS {
+    uuid id PK
+    text member_id FK -> MEMBERS.id
+    text title
+    text details
+    enum status      "draft | active | paused | completed | archived"
+    date target_date
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  COMMUNITIES {
+    uuid id PK
+    text name
+    text description
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  RESIDENCIES {
+    uuid id PK
+    uuid community_id FK -> COMMUNITIES.id
+    text name
+    text description
+    daterange dates   "optional window"
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  PROJECTS {
+    uuid id PK
+    uuid community_id FK -> COMMUNITIES.id
+    uuid residency_id FK -> RESIDENCIES.id
+    text name
+    text description
+    text created_by     "member id"
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  PROJECT_PARTICIPATION {
+    uuid project_id FK -> PROJECTS.id
+    text member_id  FK -> MEMBERS.id
+    enum role       "contributor | lead | mentor | observer"
+    enum status     "invited | active | completed | dropped"
+    timestamptz joined_at
+    timestamptz left_at
+    PK "project_id + member_id"
+  }
+
+  KUDOS {
+    uuid id PK
+    text from_member_id FK -> MEMBERS.id
+    text to_member_id   FK -> MEMBERS.id
+    uuid project_id     FK -> PROJECTS.id
+    smallint weight
+    text note
+    timestamptz created_at
+  }
+
+  BADGES {
+    uuid id PK
+    text slug  "unique"
+    text name
+    text description
+    enum rarity "common | uncommon | rare | epic | legendary"
+    text icon_url
+  }
+
+  MEMBER_BADGES {
+    text member_id FK -> MEMBERS.id
+    uuid badge_id FK -> BADGES.id
+    timestamptz awarded_at
+    text awarded_by  "member id"
+    text note
+    PK "member_id + badge_id"
+  }
+
+  MEMBER_CONNECTIONS {
+    text from_member_id FK -> MEMBERS.id
+    text to_member_id   FK -> MEMBERS.id
+    enum relation       "follow | friend | collaborator"
+    enum status         "pending | accepted | blocked"
+    timestamptz created_at
+    timestamptz responded_at
+    PK "from_member_id + to_member_id + relation"
+  }
+
+  COMMENTS {
+    uuid id PK
+    enum subject_type  "member | community | residency | project"
+    text subject_ref   "text; uuid::text for uuid subjects"
+    text author_id     "member id"
+    text body
+    timestamptz created_at
+  }

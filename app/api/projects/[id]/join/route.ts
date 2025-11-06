@@ -6,14 +6,15 @@ import { upsertProjectParticipation } from "@/lib/db/repo";
 import { toErrorResponse, ValidationError } from "@/lib/errors";
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function POST(request: Request, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const { memberId } = await getAuthenticatedMember(request);
     const json = await request.json();
-    const parsed = ProjectJoinSchema.safeParse({ ...json, project_id: params.id });
+    const parsed = ProjectJoinSchema.safeParse({ ...json, project_id: id });
     if (!parsed.success) {
       throw new ValidationError("Invalid join payload", parsed.error.flatten());
     }
@@ -23,7 +24,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       role: parsed.data.role,
       status: parsed.data.status,
     });
-    revalidatePath(`/projects/${params.id}`);
+    revalidatePath(`/projects/${id}`);
     return NextResponse.json({ ok: true, data: participation });
   } catch (error) {
     const response = toErrorResponse(error);

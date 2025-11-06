@@ -5,11 +5,12 @@ import { Card } from "@/components/ui/Card";
 export const dynamic = "force-dynamic";
 
 type HomePageProps = {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const tabParam = Array.isArray(searchParams?.tab) ? searchParams?.tab[0] : searchParams?.tab;
+  const params = await searchParams;
+  const tabParam = Array.isArray(params?.tab) ? params?.tab[0] : params?.tab;
   const tab = tabParam === "communities" ? "communities" : "members";
   const [members, communities] = await Promise.all([listMembers(), listCommunities()]);
 

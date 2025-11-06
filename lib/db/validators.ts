@@ -11,7 +11,7 @@ export const ContactCreateSchema = z.object({
   member_id: z.string(),
   kind: z.enum(["x", "substack", "instagram", "website", "email", "phone", "telegram", "whatsapp"]),
   handle: z.string().min(1).max(255),
-  url: z.string().url().nullable().optional(),
+  url: z.string().url().nullable().default(null),
   is_public: z.boolean().default(true),
 });
 

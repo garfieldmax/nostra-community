@@ -4,13 +4,14 @@ import { getProject, listProjectParticipants, listComments, getMember } from "@/
 import { ProjectPageShell } from "@/components/ProjectPageShell";
 
 interface ProjectPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export const dynamic = "force-dynamic";
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
-  const project = await getProject(params.id);
+  const { id } = await params;
+  const project = await getProject(id);
   if (!project) {
     notFound();
   }

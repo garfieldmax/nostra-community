@@ -15,13 +15,14 @@ import { MemberProfileShell } from "@/components/MemberProfileShell";
 import { getMutuals } from "@/lib/social/mutuals";
 
 interface MemberPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export const dynamic = "force-dynamic";
 
 export default async function MemberPage({ params }: MemberPageProps) {
-  const member = await getMember(params.id);
+  const { id } = await params;
+  const member = await getMember(id);
   if (!member) {
     notFound();
   }

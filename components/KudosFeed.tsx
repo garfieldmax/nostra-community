@@ -1,7 +1,7 @@
 import type { Kudos, Project } from "@/lib/db/types";
 import { Card } from "@/components/ui/Card";
 
-interface KudosFeedItem extends Kudos {
+interface KudosFeedItem extends Omit<Kudos, 'project' | 'from_member'> {
   project?: Project | null;
   from_member?: { id: string; display_name: string; avatar_url: string | null } | null;
 }
