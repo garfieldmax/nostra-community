@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { getProject, listProjectParticipants, listComments, getMember } from "@/lib/db/repo";
+import { getProject, listProjectParticipants, listComments } from "@/lib/db/repo";
 import { ProjectPageShell } from "@/components/ProjectPageShell";
 
 interface ProjectPageProps {
@@ -19,17 +19,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     listProjectParticipants(project.id),
     listComments("project", project.id),
   ]);
-  const participantsWithMembers = await Promise.all(
-    participants.map(async (participant) => ({
-      ...participant,
-      member: await getMember(participant.member_id),
-    }))
-  );
   const headerList = await headers();
   const viewerId = headerList.get("x-member-id");
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10">
-      <ProjectPageShell viewerId={viewerId} project={project} participants={participantsWithMembers} comments={comments} />
+      <ProjectPageShell viewerId={viewerId} project={project} participants={participants} comments={comments} />
     </div>
   );
 }

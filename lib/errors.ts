@@ -60,3 +60,20 @@ export function toErrorResponse(error: unknown) {
     },
   };
 }
+
+/**
+ * Maps an error code to the appropriate HTTP status code.
+ */
+export function getStatusFromError(error: unknown): number {
+  const response = toErrorResponse(error);
+  const codeToStatus: Record<ErrorCode, number> = {
+    UNAUTHENTICATED: 401,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    VALIDATION_FAILED: 400,
+    CONFLICT: 409,
+    BUDGET_EXCEEDED: 429,
+    INTERNAL: 500,
+  };
+  return codeToStatus[response.error.code] ?? 500;
+}

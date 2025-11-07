@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { getAuthenticatedMember } from "@/lib/auth/privy";
 import { ContactCreateSchema } from "@/lib/db/validators";
 import { createMemberContact } from "@/lib/db/repo";
-import { AuthorizationError, toErrorResponse, ValidationError } from "@/lib/errors";
+import { AuthorizationError, toErrorResponse, ValidationError, getStatusFromError } from "@/lib/errors";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -26,7 +26,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     return NextResponse.json({ ok: true, data: contact });
   } catch (error) {
     const response = toErrorResponse(error);
-    const status = response.error.code === "VALIDATION_FAILED" ? 400 : response.error.code === "FORBIDDEN" ? 403 : response.error.code === "UNAUTHENTICATED" ? 401 : 500;
+    const status = getStatusFromError(error);
     return NextResponse.json(response, { status });
   }
 }

@@ -37,6 +37,14 @@ export async function getMember(id: string): Promise<Member | null> {
   return data;
 }
 
+export async function getMembers(ids: string[]): Promise<Member[]> {
+  if (ids.length === 0) return [];
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.from("members").select("*").in("id", ids);
+  if (error) handleError(error);
+  return data ?? [];
+}
+
 export async function listMembers(): Promise<Member[]> {
   const supabase = await supabaseServer();
   const { data, error } = await supabase
@@ -196,11 +204,14 @@ export async function listProjectParticipants(projectId: string): Promise<Projec
   const supabase = await supabaseServer();
   const { data, error } = await supabase
     .from("project_participation")
-    .select("*")
+    .select("*, members(*)")
     .eq("project_id", projectId)
     .order("joined_at", { ascending: true });
   if (error) handleError(error);
-  return data ?? [];
+  return (data ?? []).map((row) => ({
+    ...row,
+    member: (row as ProjectParticipation & { members: Member }).members,
+  }));
 }
 
 export async function upsertProjectParticipation(participation: {
@@ -294,11 +305,14 @@ export async function listActiveParticipationsForMember(memberId: string): Promi
   const supabase = await supabaseServer();
   const { data, error } = await supabase
     .from("project_participation")
-    .select("*")
+    .select("*, projects(*)")
     .eq("member_id", memberId)
     .eq("status", "active");
   if (error) handleError(error);
-  return data ?? [];
+  return (data ?? []).map((row) => ({
+    ...row,
+    project: (row as ProjectParticipation & { projects: Project }).projects,
+  }));
 }
 
 export async function listMemberBadges(memberId: string): Promise<MemberBadge[]> {

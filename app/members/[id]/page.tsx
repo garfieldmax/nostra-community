@@ -9,7 +9,6 @@ import {
   listKudosForMember,
   listActiveParticipationsForMember,
   listComments,
-  getProject,
 } from "@/lib/db/repo";
 import { MemberProfileShell } from "@/components/MemberProfileShell";
 import { getMutuals } from "@/lib/social/mutuals";
@@ -36,12 +35,6 @@ export default async function MemberPage({ params }: MemberPageProps) {
     listActiveParticipationsForMember(member.id),
     listComments("member", member.id),
   ]);
-  const participationsWithProjects = await Promise.all(
-    participations.map(async (participation) => ({
-      ...participation,
-      project: await getProject(participation.project_id),
-    }))
-  );
 
   const headerList = await headers();
   const viewerId = headerList.get("x-member-id");
@@ -58,7 +51,7 @@ export default async function MemberPage({ params }: MemberPageProps) {
         goals={goals}
         kudos={kudos}
         comments={comments}
-        participations={participationsWithProjects}
+        participations={participations}
         mutuals={mutuals}
       />
     </div>

@@ -1,22 +1,12 @@
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { listInterests, upsertInterest, deleteInterest, getMember } from "@/lib/db/repo";
+import { listInterests, upsertInterest, deleteInterest } from "@/lib/db/repo";
+import { InterestUpsertSchema } from "@/lib/db/validators";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { assertAdmin } from "@/lib/authz/admin";
 
 export const dynamic = "force-dynamic";
-
-async function assertAdmin() {
-  const headerList = await headers();
-  const viewerId = headerList.get("x-member-id");
-  if (!viewerId) return null;
-  const member = await getMember(viewerId);
-  if (!member || member.level !== "manager") {
-    return null;
-  }
-  return member;
-}
 
 export default async function AdminInterestsPage() {
   const admin = await assertAdmin();
@@ -34,11 +24,17 @@ export default async function AdminInterestsPage() {
 
   async function createInterest(formData: FormData) {
     "use server";
-    const label = formData.get("label");
-    const kind = formData.get("kind");
-    if (typeof label !== "string" || label.trim().length === 0) return;
-    if (typeof kind !== "string") return;
-    await upsertInterest({ label: label.trim(), kind: kind as "hobby" | "skill" | "topic" });
+    const rawData = {
+      label: formData.get("label"),
+      kind: formData.get("kind"),
+    };
+    const parsed = InterestUpsertSchema.safeParse(rawData);
+    if (!parsed.success) {
+      // TODO: Return validation errors to the UI
+      console.error("Interest validation failed:", parsed.error.flatten());
+      return;
+    }
+    await upsertInterest(parsed.data);
     revalidatePath("/admin/interests");
   }
 

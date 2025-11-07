@@ -4,12 +4,7 @@ import { AuthorizationError } from "@/lib/errors";
 export async function isCommunityManager(memberId: string, communityId: string): Promise<boolean> {
   const member = await getMember(memberId);
   if (!member) return false;
-  if (member.level === "manager") {
-    return true;
-  }
-  // Allow project leads within the community to manage badges as managers.
-  // Downstream callers should also check project context when available.
-  return false;
+  return member.level === "manager";
 }
 
 export async function isProjectLead(memberId: string, projectId: string): Promise<boolean> {

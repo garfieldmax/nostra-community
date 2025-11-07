@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { getAuthenticatedMember } from "@/lib/auth/privy";
 import { MemberUpdateSchema } from "@/lib/db/validators";
 import { updateMember } from "@/lib/db/repo";
-import { AuthorizationError, toErrorResponse, ValidationError } from "@/lib/errors";
+import { AuthorizationError, toErrorResponse, ValidationError, getStatusFromError } from "@/lib/errors";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -26,10 +26,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json({ ok: true, data: member });
   } catch (error) {
     const response = toErrorResponse(error);
-    let status = 500;
-    if (response.error.code === "VALIDATION_FAILED") status = 400;
-    else if (response.error.code === "FORBIDDEN") status = 403;
-    else if (response.error.code === "UNAUTHENTICATED") status = 401;
+    const status = getStatusFromError(error);
     return NextResponse.json(response, { status });
   }
 }

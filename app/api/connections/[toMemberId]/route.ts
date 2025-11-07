@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthenticatedMember } from "@/lib/auth/privy";
 import { ConnectionUpdateSchema } from "@/lib/db/validators";
 import { updateConnectionStatus } from "@/lib/db/repo";
-import { toErrorResponse, ValidationError } from "@/lib/errors";
+import { toErrorResponse, ValidationError, getStatusFromError } from "@/lib/errors";
 
 interface RouteParams {
   params: Promise<{ toMemberId: string }>;
@@ -26,7 +26,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json({ ok: true, data: connection });
   } catch (error) {
     const response = toErrorResponse(error);
-    const status = response.error.code === "VALIDATION_FAILED" ? 400 : response.error.code === "UNAUTHENTICATED" ? 401 : 500;
+    const status = getStatusFromError(error);
     return NextResponse.json(response, { status });
   }
 }

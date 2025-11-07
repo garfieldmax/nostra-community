@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
-import { listMembers, listMemberInterests } from "@/lib/db/repo";
-import { getMutuals } from "@/lib/social/mutuals";
+import { listMembers, listMemberInterests, listConnections, getMembers } from "@/lib/db/repo";
 import { DiscoveryList, type DiscoveryItem } from "@/components/DiscoveryList";
+import type { Member } from "@/lib/db/types";
 
 export const dynamic = "force-dynamic";
 
@@ -11,24 +11,80 @@ export default async function DiscoverPage() {
   const members = await listMembers();
 
   let viewerInterests = [] as string[];
-  if (viewerId) {
-    viewerInterests = (await listMemberInterests(viewerId)).map((interest) => interest.id);
-  }
-
   const mutualItems: DiscoveryItem[] = [];
   const sharedItems: DiscoveryItem[] = [];
-
-  for (const member of members) {
-    if (viewerId && member.id !== viewerId) {
-      const mutuals = await getMutuals(viewerId, member.id);
-      if (mutuals.length > 0) {
-        mutualItems.push({ member, mutuals });
-      }
-      if (viewerInterests.length > 0) {
-        const memberInterests = (await listMemberInterests(member.id)).map((interest) => interest.id);
-        const overlap = memberInterests.filter((id) => viewerInterests.includes(id));
-        if (overlap.length > 0) {
-          sharedItems.push({ member, mutuals: [] });
+  
+  if (viewerId) {
+    // Fetch viewer's interests once
+    viewerInterests = (await listMemberInterests(viewerId)).map((interest) => interest.id);
+    
+    // Fetch all viewer's accepted connections once
+    const viewerConnections = await listConnections(viewerId);
+    const acceptedViewerConnections = viewerConnections.filter((conn) => conn.status === "accepted");
+    const viewerConnectionIds = new Set(
+      acceptedViewerConnections.map((conn) => 
+        conn.from_member_id === viewerId ? conn.to_member_id : conn.from_member_id
+      )
+    );
+    
+    // Fetch all member interests in parallel (bulk fetch)
+    const otherMemberIds = members.filter(m => m.id !== viewerId).map(m => m.id);
+    const allInterestsResults = await Promise.all(
+      otherMemberIds.map(async (memberId) => {
+        const interests = await listMemberInterests(memberId);
+        return { memberId, interestIds: interests.map((i) => i.id) };
+      })
+    );
+    const allMemberInterestsMap = new Map(
+      allInterestsResults.map(({ memberId, interestIds }) => [memberId, interestIds])
+    );
+    
+    // Fetch all connections for all other members in parallel (bulk fetch)
+    const allMemberConnectionsResults = await Promise.all(
+      otherMemberIds.map(async (memberId) => {
+        const connections = await listConnections(memberId);
+        const acceptedConnections = connections.filter((conn) => conn.status === "accepted");
+        const connectionIds = new Set(
+          acceptedConnections.map((conn) =>
+            conn.from_member_id === memberId ? conn.to_member_id : conn.from_member_id
+          )
+        );
+        return { memberId, connectionIds };
+      })
+    );
+    const memberConnectionsMap = new Map(
+      allMemberConnectionsResults.map(({ memberId, connectionIds }) => [memberId, connectionIds])
+    );
+    
+    // Fetch all member objects for viewer's connections (for mutual display)
+    const viewerConnectionMembers = await getMembers(Array.from(viewerConnectionIds));
+    const viewerConnectionMembersMap = new Map(
+      viewerConnectionMembers.map((m) => [m.id, m])
+    );
+    
+    // Now process all members in memory
+    for (const member of members) {
+      if (member.id !== viewerId) {
+        // Check for mutual connections (people both viewer and member are connected to)
+        const memberConnectionIds = memberConnectionsMap.get(member.id) ?? new Set<string>();
+        const mutualConnectionIds = Array.from(viewerConnectionIds).filter((id) => 
+          memberConnectionIds.has(id)
+        );
+        
+        if (mutualConnectionIds.length > 0) {
+          const mutuals = mutualConnectionIds
+            .map((id) => viewerConnectionMembersMap.get(id))
+            .filter(Boolean) as Member[];
+          mutualItems.push({ member, mutuals });
+        }
+        
+        // Check for shared interests
+        if (viewerInterests.length > 0) {
+          const memberInterests = allMemberInterestsMap.get(member.id) ?? [];
+          const overlap = memberInterests.filter((id) => viewerInterests.includes(id));
+          if (overlap.length > 0) {
+            sharedItems.push({ member, mutuals: [] });
+          }
         }
       }
     }

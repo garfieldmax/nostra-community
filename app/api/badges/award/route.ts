@@ -4,7 +4,7 @@ import { getAuthenticatedMember } from "@/lib/auth/privy";
 import { BadgeAwardSchema } from "@/lib/db/validators";
 import { awardBadge } from "@/lib/db/repo";
 import { assertCanAwardBadge } from "@/lib/authz/roles";
-import { toErrorResponse, ValidationError } from "@/lib/errors";
+import { toErrorResponse, ValidationError, getStatusFromError } from "@/lib/errors";
 
 export async function POST(request: Request) {
   try {
@@ -29,14 +29,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, data: record });
   } catch (error) {
     const response = toErrorResponse(error);
-    const status =
-      response.error.code === "VALIDATION_FAILED"
-        ? 400
-        : response.error.code === "FORBIDDEN"
-        ? 403
-        : response.error.code === "UNAUTHENTICATED"
-        ? 401
-        : 500;
+    const status = getStatusFromError(error);
     return NextResponse.json(response, { status });
   }
 }

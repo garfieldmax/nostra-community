@@ -1,23 +1,13 @@
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { listBadges, upsertBadge, deleteBadge, getMember } from "@/lib/db/repo";
+import { listBadges, upsertBadge, deleteBadge } from "@/lib/db/repo";
+import { BadgeUpsertSchema } from "@/lib/db/validators";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
+import { assertAdmin } from "@/lib/authz/admin";
 
 export const dynamic = "force-dynamic";
-
-async function assertAdmin() {
-  const headerList = await headers();
-  const viewerId = headerList.get("x-member-id");
-  if (!viewerId) return null;
-  const member = await getMember(viewerId);
-  if (!member || member.level !== "manager") {
-    return null;
-  }
-  return member;
-}
 
 export default async function AdminBadgesPage() {
   const admin = await assertAdmin();
@@ -35,18 +25,21 @@ export default async function AdminBadgesPage() {
 
   async function createBadge(formData: FormData) {
     "use server";
-    const name = formData.get("name");
-    const slug = formData.get("slug");
-    const rarity = formData.get("rarity");
-    const description = formData.get("description");
-    if (typeof name !== "string" || name.trim().length === 0) return;
-    if (typeof slug !== "string" || slug.trim().length === 0) return;
-    if (typeof rarity !== "string") return;
+    const rawData = {
+      name: formData.get("name"),
+      slug: formData.get("slug"),
+      rarity: formData.get("rarity"),
+      description: formData.get("description"),
+    };
+    const parsed = BadgeUpsertSchema.safeParse(rawData);
+    if (!parsed.success) {
+      // TODO: Return validation errors to the UI
+      console.error("Badge validation failed:", parsed.error.flatten());
+      return;
+    }
     await upsertBadge({
-      name: name.trim(),
-      slug: slug.trim(),
-      rarity: rarity as "common" | "uncommon" | "rare" | "epic" | "legendary",
-      description: typeof description === "string" && description.length > 0 ? description : null,
+      ...parsed.data,
+      description: parsed.data.description || null,
     });
     revalidatePath("/admin/badges");
   }

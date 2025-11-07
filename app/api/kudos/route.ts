@@ -4,7 +4,7 @@ import { getAuthenticatedMember } from "@/lib/auth/privy";
 import { KudosCreateSchema } from "@/lib/db/validators";
 import { assertKudosBudget } from "@/lib/kudos/budget";
 import { createKudos, listKudosForMember } from "@/lib/db/repo";
-import { toErrorResponse, ValidationError } from "@/lib/errors";
+import { toErrorResponse, ValidationError, getStatusFromError } from "@/lib/errors";
 
 export async function POST(request: Request) {
   try {
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, data: record });
   } catch (error) {
     const response = toErrorResponse(error);
-    const status = response.error.code === "UNAUTHENTICATED" ? 401 : response.error.code === "VALIDATION_FAILED" ? 400 : response.error.code === "BUDGET_EXCEEDED" ? 429 : 500;
+    const status = getStatusFromError(error);
     return NextResponse.json(response, { status });
   }
 }
@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: true, data: kudos });
   } catch (error) {
     const response = toErrorResponse(error);
-    const status = response.error.code === "VALIDATION_FAILED" ? 400 : response.error.code === "UNAUTHENTICATED" ? 401 : 500;
+    const status = getStatusFromError(error);
     return NextResponse.json(response, { status });
   }
 }
