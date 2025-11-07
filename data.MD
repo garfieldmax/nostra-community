@@ -16,6 +16,9 @@ Curated list of interest tags and a join table connecting members to those tags.
 ### member_goals
 Goals authored by members, including `status`, optional `target_date`, and `privacy` (public/private). Non-public goals are hidden from other members.
 
+### onboarding_submissions
+Single-record form capturing the onboarding questionnaire for each authenticated member. Stores preferred `name`, `email`, motivations, creative ambitions, fun fact, and any shared links. Used to gate access to member-only surfaces until completed.
+
 ### communities, residencies, projects
 Hierarchy describing where collaborations occur. Projects optionally belong to residencies and always to a community. Each project records the `created_by` member ID.
 

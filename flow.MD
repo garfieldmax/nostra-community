@@ -4,9 +4,15 @@ This guide walks through the primary end-to-end flows enabled by the Agartha pro
 
 ## Authentication & session bootstrap
 
-1. Visitor lands on `/login` and authenticates via Privy.
-2. [`middleware.ts`](./middleware.ts) intercepts subsequent requests, verifies the Privy JWT via [`lib/auth/privy.ts`](./lib/auth/privy.ts), and attaches `memberId` to the request headers/context.
-3. Server Components and Route Handlers read the authenticated member ID through helper utilities to scope queries and enforce authorization.
+1. Visitors can browse read-only routes like `/` and `/communities` without signing in. [`middleware.ts`](./middleware.ts) allows these paths but still attempts to resolve a Privy session so the `x-member-id` header is present when available.
+2. When a visitor lands on `/login` and authenticates via Privy, the client redirects back to the requested path (default `/`).
+3. Post-authentication, [`lib/onboarding.ts`](./lib/onboarding.ts) ensures the member record exists and checks for an onboarding submission before granting access to protected surfaces. Requests without a completed submission are redirected to `/onboarding`.
+
+## Onboarding questionnaire
+
+1. Newly authenticated members are routed to [`/onboarding`](./app/onboarding/page.tsx) to complete the required intake form.
+2. The form posts to [`actions/onboarding.ts`](./actions/onboarding.ts), which validates input with [`OnboardingSubmissionSchema`](./lib/db/validators.ts), upserts into `onboarding_submissions`, and updates the member display name.
+3. Successful submissions revalidate member-centric routes and return the user to `/`, unlocking Members navigation and discovery tools.
 
 ## Member profile management
 

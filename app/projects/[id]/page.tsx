@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getProject, listProjectParticipants, listComments } from "@/lib/db/repo";
 import { ProjectPageShell } from "@/components/ProjectPageShell";
+import { requireOnboardedMember } from "@/lib/onboarding";
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>;
@@ -10,6 +11,7 @@ interface ProjectPageProps {
 export const dynamic = "force-dynamic";
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
+  await requireOnboardedMember();
   const { id } = await params;
   const project = await getProject(id);
   if (!project) {

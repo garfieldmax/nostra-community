@@ -1,6 +1,10 @@
 import Link from "next/link";
-import { listMembers, listCommunities } from "@/lib/db/repo";
+import { redirect } from "next/navigation";
+
 import { Card } from "@/components/ui/Card";
+import { CommunitySearchList } from "@/components/communities/CommunitySearchList";
+import { listMembers, listCommunities } from "@/lib/db/repo";
+import { getOnboardingStatus } from "@/lib/onboarding";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +14,21 @@ type HomePageProps = {
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
+  const { user, submission } = await getOnboardingStatus();
+
+  if (user && !submission) {
+    redirect("/onboarding");
+  }
+
+  const canSeeMembers = Boolean(user && submission);
   const tabParam = Array.isArray(params?.tab) ? params?.tab[0] : params?.tab;
-  const tab = tabParam === "communities" ? "communities" : "members";
-  const [members, communities] = await Promise.all([listMembers(), listCommunities()]);
+  const requestedTab = tabParam === "members" ? "members" : "communities";
+  const tab = canSeeMembers ? requestedTab : "communities";
+  const searchParam = Array.isArray(params?.q) ? params?.q[0] : params?.q;
+  const communitySearch = tab === "communities" && typeof searchParam === "string" ? searchParam : "";
+
+  const communities = await listCommunities({ search: communitySearch });
+  const members = tab === "members" ? await listMembers() : [];
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10">
@@ -21,28 +37,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <p className="text-sm text-slate-600">
           Explore the community, discover collaborators, and celebrate great work.
         </p>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href="/?tab=members"
-          className={`rounded-full px-4 py-2 text-sm font-medium ${
-            tab === "members"
-              ? "bg-slate-900 text-white"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-          }`}
-        >
-          Members
-        </Link>
-        <Link
-          href="/?tab=communities"
-          className={`rounded-full px-4 py-2 text-sm font-medium ${
-            tab === "communities"
-              ? "bg-slate-900 text-white"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-          }`}
-        >
-          Communities
-        </Link>
       </div>
       {tab === "members" ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -70,16 +64,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           ))}
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
-          {communities.map((community) => (
-            <Link key={community.id} href={`/communities/${community.id}`}>
-              <Card className="space-y-2">
-                <h2 className="text-lg font-semibold text-slate-900">{community.name}</h2>
-                {community.description && <p className="text-sm text-slate-600">{community.description}</p>}
-              </Card>
-            </Link>
-          ))}
-        </div>
+        <CommunitySearchList
+          communities={communities}
+          searchQuery={communitySearch}
+          formAction="/"
+          clearHref="/?tab=communities"
+          hiddenFields={[{ name: "tab", value: "communities" }]}
+        />
       )}
     </div>
   );

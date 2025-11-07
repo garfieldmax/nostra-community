@@ -86,3 +86,18 @@ export const ProjectJoinSchema = z.object({
   role: z.enum(["contributor", "lead", "mentor", "observer"]).default("contributor"),
   status: z.enum(["invited", "active", "completed", "dropped"]).default("active"),
 });
+
+export const OnboardingSubmissionSchema = z.object({
+  name: z.string().min(1).max(120).trim(),
+  email: z.string().email().trim(),
+  whyJoin: z.string().min(1).max(2000).trim(),
+  whatCreate: z.string().min(1).max(2000).trim(),
+  coolFact: z.string().min(1).max(2000).trim(),
+  links: z
+    .string()
+    .max(1000)
+    .transform((value) => value.trim())
+    .optional()
+    .or(z.literal(""))
+    .transform((value) => (value && value.length > 0 ? value : undefined)),
+});

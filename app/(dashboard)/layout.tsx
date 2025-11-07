@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { getUser } from "@/lib/auth";
 import { ensureProfile } from "@/lib/profile";
+import { getOnboardingSubmission } from "@/lib/db/repo";
 import { redirect } from "next/navigation";
 
 // Mark dashboard routes as dynamic since they use cookies for authentication
@@ -34,7 +35,11 @@ export default async function DashboardGroupLayout({
   } else {
     // Ensure profile exists for authenticated user
     try {
-      await ensureProfile(user);
+      const record = await ensureProfile(user);
+      const submission = await getOnboardingSubmission(record.id);
+      if (!submission) {
+        redirect("/onboarding");
+      }
     } catch (error) {
       console.error("[DashboardGroupLayout] Error ensuring profile:", error);
       // Continue even if profile creation fails

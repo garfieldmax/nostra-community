@@ -1,23 +1,24 @@
 import { supabaseServer } from "@/lib/supabaseServer";
 import {
   Badge,
+  Comment,
   Community,
+  ConnectionRelation,
+  ConnectionStatus,
   Interest,
+  Kudos,
   Member,
   MemberBadge,
+  MemberConnection,
   MemberContact,
   MemberGoal,
   MemberInterest,
-  MemberConnection,
+  OnboardingSubmission,
   ParticipationStatus,
   Project,
-  Residency,
   ProjectParticipation,
   ProjectRole,
-  Kudos,
-  ConnectionStatus,
-  ConnectionRelation,
-  Comment,
+  Residency,
 } from "@/lib/db/types";
 import { AppError } from "@/lib/errors";
 
@@ -150,9 +151,15 @@ export async function deleteMemberGoal(id: string): Promise<void> {
   if (error) handleError(error);
 }
 
-export async function listCommunities(): Promise<Community[]> {
+export async function listCommunities(filter?: { search?: string }): Promise<Community[]> {
   const supabase = await supabaseServer();
-  const { data, error } = await supabase.from("communities").select("*").order("name", { ascending: true });
+  let query = supabase.from("communities").select("*");
+  if (filter?.search && filter.search.trim().length > 0) {
+    const term = filter.search.trim();
+    const sanitized = term.replace(/[%_]/g, "\\$&").replace(/,/g, "\\,");
+    query = query.or(`name.ilike.%${sanitized}%,description.ilike.%${sanitized}%`);
+  }
+  const { data, error } = await query.order("name", { ascending: true });
   if (error) handleError(error);
   return data ?? [];
 }
@@ -474,4 +481,31 @@ export async function listComments(subjectType: Comment["subject_type"], subject
     .limit(50);
   if (error) handleError(error);
   return data ?? [];
+}
+
+export async function getOnboardingSubmission(memberId: string): Promise<OnboardingSubmission | null> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase
+    .from("onboarding_submissions")
+    .select("*")
+    .eq("member_id", memberId)
+    .maybeSingle();
+  if (error) handleError(error);
+  return data;
+}
+
+export async function upsertOnboardingSubmission(
+  submission: Omit<OnboardingSubmission, "created_at" | "updated_at">
+): Promise<OnboardingSubmission> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase
+    .from("onboarding_submissions")
+    .upsert({
+      ...submission,
+      links: submission.links ?? null,
+    })
+    .select("*")
+    .single();
+  if (error) handleError(error);
+  return data;
 }

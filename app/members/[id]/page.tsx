@@ -12,6 +12,7 @@ import {
 } from "@/lib/db/repo";
 import { MemberProfileShell } from "@/components/MemberProfileShell";
 import { getMutuals } from "@/lib/social/mutuals";
+import { requireOnboardedMember } from "@/lib/onboarding";
 
 interface MemberPageProps {
   params: Promise<{ id: string }>;
@@ -20,6 +21,7 @@ interface MemberPageProps {
 export const dynamic = "force-dynamic";
 
 export default async function MemberPage({ params }: MemberPageProps) {
+  await requireOnboardedMember();
   const { id } = await params;
   const member = await getMember(id);
   if (!member) {
