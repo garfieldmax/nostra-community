@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getAuthenticatedMember } from "@/lib/auth/privy";
+import { optionalMember } from "@/lib/auth/privy";
 import { AppError } from "@/lib/errors";
 
-const PUBLIC_PATHS = ["/login", "/_next", "/favicon.ico", "/api/health"];
+const PUBLIC_PATHS = ["/", "/login", "/_next", "/favicon.ico", "/api/health", "/communities"];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -11,15 +11,20 @@ function isPublicPath(pathname: string) {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (isPublicPath(pathname)) {
-    return NextResponse.next();
-  }
-
   try {
-    const { memberId } = await getAuthenticatedMember(request);
+    const auth = await optionalMember(request);
     const response = NextResponse.next();
-    response.headers.set("x-member-id", memberId);
-    return response;
+    if (auth) {
+      response.headers.set("x-member-id", auth.memberId);
+      return response;
+    }
+
+    if (isPublicPath(pathname)) {
+      return response;
+    }
+
+    // No authenticated member and non-public path
+    throw new AppError("Missing Privy token", "UNAUTHENTICATED");
   } catch (error) {
     if (pathname.startsWith("/api")) {
       const status = error instanceof AppError && error.code === "UNAUTHENTICATED" ? 401 : 500;

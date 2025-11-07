@@ -2,10 +2,12 @@ import { headers } from "next/headers";
 import { listMembers, listMemberInterests, listConnections, getMembers } from "@/lib/db/repo";
 import { DiscoveryList, type DiscoveryItem } from "@/components/DiscoveryList";
 import type { Member } from "@/lib/db/types";
+import { requireOnboardedMember } from "@/lib/onboarding";
 
 export const dynamic = "force-dynamic";
 
 export default async function DiscoverPage() {
+  await requireOnboardedMember();
   const headerList = await headers();
   const viewerId = headerList.get("x-member-id");
   const members = await listMembers();

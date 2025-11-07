@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { PrivyProviderWrapper } from "@/components/PrivyProviderWrapper";
+import { SiteHeader } from "@/components/shell/SiteHeader";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,11 +26,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} bg-slate-50 text-slate-900 antialiased min-h-screen`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} bg-slate-50 text-slate-900 antialiased min-h-screen`}>
         <PrivyProviderWrapper>
-          {children}
+          <div className="flex min-h-screen flex-col">
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
+          </div>
         </PrivyProviderWrapper>
       </body>
     </html>

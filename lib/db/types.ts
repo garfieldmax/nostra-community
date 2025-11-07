@@ -158,6 +158,18 @@ export interface Comment {
   created_at: string;
 }
 
+export interface OnboardingSubmission {
+  member_id: string;
+  name: string;
+  email: string;
+  why_join: string;
+  what_create: string;
+  cool_fact: string;
+  links: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ProfileSummary {
   member: Member;
   contacts: MemberContact[];

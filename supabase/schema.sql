@@ -115,6 +115,22 @@ create trigger trg_members_updated
 before update on public.members
 for each row execute function public.set_updated_at();
 
+-- Onboarding submissions captured after authentication
+create table if not exists public.onboarding_submissions (
+  member_id text primary key references public.members(id) on delete cascade,
+  name text not null,
+  email text not null,
+  why_join text not null,
+  what_create text not null,
+  cool_fact text not null,
+  links text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create trigger trg_onboarding_submissions_updated
+before update on public.onboarding_submissions
+for each row execute function public.set_updated_at();
+
 -- Member contacts
 create table if not exists public.member_contacts (
   id uuid primary key default gen_random_uuid(),
