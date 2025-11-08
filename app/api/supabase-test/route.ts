@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabaseServer";
-import { getPrivyUser } from "@/lib/privyServer";
+import { getSessionUser } from "@/lib/auth/privy";
 
 export async function GET() {
   const diagnostics: Record<string, unknown> = {
@@ -46,12 +46,12 @@ export async function GET() {
 
     // Test 2: Privy auth check
     console.log("[API Test] Testing Privy auth");
-    const privyUser = await getPrivyUser();
+    const sessionUser = await getSessionUser();
 
     diagnostics.authCheck = {
       success: true,
-      hasUser: !!privyUser,
-      userId: privyUser?.id,
+      hasUser: !!sessionUser,
+      userId: sessionUser?.id,
     };
 
     diagnostics.overallStatus = "success";

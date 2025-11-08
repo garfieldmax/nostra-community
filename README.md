@@ -15,6 +15,20 @@ Agartha is a members-first collaboration platform that connects residents, alumn
 3. **Recognition** – Kudos, badges, goals, and comments celebrate contributions and keep the social graph active.
 4. **Discovery** – Mutual connections, shared interests, and trending members power the `/discover` page and profile cards.
 
+## Authentication configuration
+
+The Privy SDK handles user login on the client, while the server now maintains an encrypted session cookie to authorize API
+requests and Server Components. Define the following environment variables in `.env.local`:
+
+```bash
+NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
+PRIVY_APP_SECRET=your_privy_server_secret
+SESSION_SECRET=generate_a_random_32_byte_string
+```
+
+`SESSION_SECRET` should be a long, random string (32+ bytes) and is used to sign the HttpOnly `agartha-session` cookie. Rotate it
+whenever you need to invalidate all existing sessions.
+
 ## Key capabilities delivered
 
 - Server middleware that validates Privy JWTs and injects `memberId` into request context.

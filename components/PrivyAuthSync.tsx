@@ -1,41 +1,67 @@
 "use client";
 
 import { usePrivy } from "@privy-io/react-auth";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+
+import { clearAuthSession, syncAuthToken } from "@/actions/auth";
 
 /**
- * Client component that syncs Privy auth state to server via cookies
- * This ensures server-side routes can access the authentication token
+ * Client component that syncs Privy auth state to a secure server session.
  */
 export function PrivyAuthSync() {
   const { authenticated, getAccessToken } = usePrivy();
+  const lastSyncedToken = useRef<string | null>(null);
+  const clearedRef = useRef(false);
 
   useEffect(() => {
-    if (authenticated) {
-      // When authenticated, get the access token and store it for server-side access
-      console.log('[PrivyAuthSync] User authenticated, getting access token...');
-      getAccessToken()
-        .then((token) => {
-          if (token) {
-            const tokenPreview = `${token.substring(0, 8)}...${token.substring(token.length - 4)}`;
-            console.log(`[PrivyAuthSync] Got access token: ${tokenPreview}`);
-            // Store token in a cookie that server can read
-            document.cookie = `privy-access-token=${token}; path=/; max-age=3600; SameSite=Lax`;
-            console.log('[PrivyAuthSync] Stored access token in cookie');
-          } else {
-            console.warn('[PrivyAuthSync] getAccessToken returned null');
+    let cancelled = false;
+
+    async function synchronizeToken() {
+      if (!authenticated) {
+        lastSyncedToken.current = null;
+        if (!clearedRef.current) {
+          clearedRef.current = true;
+          try {
+            await clearAuthSession();
+          } catch (error) {
+            console.error("[PrivyAuthSync] Failed to clear session", error);
           }
-        })
-        .catch((error) => {
-          console.error("[PrivyAuthSync] Error getting access token:", error);
-        });
-    } else {
-      console.log('[PrivyAuthSync] User not authenticated, clearing cookies');
-      // Clear token when not authenticated
-      document.cookie = "privy-access-token=; path=/; max-age=0";
+        }
+        return;
+      }
+
+      clearedRef.current = false;
+
+      try {
+        const token = await getAccessToken();
+        if (!token || cancelled) {
+          return;
+        }
+
+        if (lastSyncedToken.current === token) {
+          return;
+        }
+
+        const tokenPreview = `${token.substring(0, 8)}...${token.substring(token.length - 4)}`;
+        console.log(`[PrivyAuthSync] Syncing access token ${tokenPreview}`);
+        lastSyncedToken.current = token;
+        const result = await syncAuthToken(token);
+        if (!result.success) {
+          console.warn("[PrivyAuthSync] Failed to sync token", result.error);
+          lastSyncedToken.current = null;
+        }
+      } catch (error) {
+        console.error("[PrivyAuthSync] Error syncing Privy session", error);
+        lastSyncedToken.current = null;
+      }
     }
+
+    void synchronizeToken();
+
+    return () => {
+      cancelled = true;
+    };
   }, [authenticated, getAccessToken]);
 
   return null;
 }
-
