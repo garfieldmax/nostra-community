@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { usePrivy } from "@privy-io/react-auth";
 import { logout } from "@/actions/auth";
 
@@ -9,9 +10,10 @@ type UserMenuProps = {
     email?: string | null;
     displayName?: string | null;
   };
+  memberId: string | null;
 };
 
-export function UserMenu({ user }: UserMenuProps) {
+export function UserMenu({ user, memberId }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -72,6 +74,15 @@ export function UserMenu({ user }: UserMenuProps) {
             )}
           </div>
           <div className="py-1">
+            {memberId && (
+              <Link
+                href={`/members/${encodeURIComponent(memberId)}`}
+                onClick={() => setIsOpen(false)}
+                className="block w-full px-4 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                Edit Profile
+              </Link>
+            )}
             <button
               onClick={handleLogout}
               disabled={isLoggingOut}

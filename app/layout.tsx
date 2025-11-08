@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "Prototype dashboard scaffold with Privy auth and Supabase data",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({
   children,
 }: Readonly<{

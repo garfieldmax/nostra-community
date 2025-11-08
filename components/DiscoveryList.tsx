@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Member } from "@/lib/db/types";
 import { Card } from "@/components/ui/Card";
 
@@ -23,7 +24,8 @@ function DiscoverySection({ title, members }: { title: string; members: Discover
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {members.map(({ member, mutuals }) => (
-            <Card key={member.id} padding="sm" className="flex items-center gap-3">
+            <Link key={member.id} href={`/members/${encodeURIComponent(member.id)}`}>
+              <Card padding="sm" className="flex items-center gap-3 transition-shadow hover:shadow-md">
               <div className="h-12 w-12 overflow-hidden rounded-full bg-slate-100">
                 {member.avatar_url ? (
                   <img src={member.avatar_url} alt={member.display_name} className="h-full w-full object-cover" />
@@ -63,6 +65,7 @@ function DiscoverySection({ title, members }: { title: string; members: Discover
                 )}
               </div>
             </Card>
+            </Link>
           ))}
         </div>
       )}

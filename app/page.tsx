@@ -41,7 +41,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       {tab === "members" ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {members.map((member) => (
-            <Link key={member.id} href={`/members/${member.id}`}>
+            <Link key={member.id} href={`/members/${encodeURIComponent(member.id)}`}>
               <Card className="space-y-3 p-6 hover:shadow-md">
                 <div className="flex items-center gap-3">
                   <div className="h-12 w-12 overflow-hidden rounded-full bg-slate-100">

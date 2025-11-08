@@ -23,7 +23,8 @@ export const dynamic = "force-dynamic";
 export default async function MemberPage({ params }: MemberPageProps) {
   await requireOnboardedMember();
   const { id } = await params;
-  const member = await getMember(id);
+  const memberId = decodeURIComponent(id);
+  const member = await getMember(memberId);
   if (!member) {
     notFound();
   }

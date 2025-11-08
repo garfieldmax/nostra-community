@@ -51,7 +51,7 @@ export async function SiteHeader() {
         </div>
         <div className="flex flex-1 justify-end">
           {user ? (
-            <UserMenu user={{ displayName, email }} />
+            <UserMenu user={{ displayName, email }} memberId={member?.id ?? null} />
           ) : (
             <Link
               href="/login"
