@@ -37,7 +37,7 @@ export async function SiteHeader() {
   const canSeeMembers = Boolean(user && submission);
 
   return (
-    <header className="border-b bg-white">
+    <header className="fixed top-0 left-0 right-0 z-[100] border-b bg-white shadow-sm md:static md:shadow-none">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-4 px-4">
         <div className="flex flex-1 items-center">
           <Link href="/" className="text-sm font-semibold text-slate-800 hover:text-slate-900">

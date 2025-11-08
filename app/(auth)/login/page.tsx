@@ -3,9 +3,10 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { usePrivy, useLogin } from "@privy-io/react-auth";
+import { syncAuthToken } from "@/actions/auth";
 
 function LoginForm() {
-  const { ready, authenticated } = usePrivy();
+  const { ready, authenticated, getAccessToken } = usePrivy();
   const { login } = useLogin();
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -18,13 +19,31 @@ function LoginForm() {
     // Only redirect once when authenticated
     if (authenticated && ready && !redirectingRef.current) {
       redirectingRef.current = true;
-      // Small delay to ensure cookies are set
-      setTimeout(() => {
-        const redirect = searchParams.get("redirect");
-        router.push(redirect || "/");
-      }, 100);
+      
+      // Sync auth token to server-side cookie before redirecting
+      getAccessToken()
+        .then(async (token) => {
+          if (token) {
+            const result = await syncAuthToken(token);
+            if (!result.success) {
+              console.error("[LoginForm] Failed to sync auth token");
+              setError("Authentication sync failed. Please try again.");
+              redirectingRef.current = false;
+              return;
+            }
+          }
+          
+          // Navigate after successful token sync
+          const redirect = searchParams.get("redirect");
+          router.push(redirect || "/");
+        })
+        .catch((err) => {
+          console.error("[LoginForm] Error during auth sync:", err);
+          setError("Authentication failed. Please try again.");
+          redirectingRef.current = false;
+        });
     }
-  }, [authenticated, ready, router, searchParams]);
+  }, [authenticated, ready, getAccessToken, router, searchParams]);
 
   useEffect(() => {
     if (hasHydratedParamsRef.current) {
