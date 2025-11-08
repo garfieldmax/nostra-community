@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { fetchPrivyUser, clearServerSession } from "@/lib/auth/privy";
+import { fetchPrivyUser } from "@/lib/auth/privy";
 import {
   SESSION_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
@@ -67,7 +67,7 @@ export async function clearAuthSession() {
 export async function logout() {
   const cookieStore = await cookies();
   clearLegacyCookies(cookieStore);
-  await clearServerSession();
+  await clearSessionCookie();
 
   redirect("/login");
 }

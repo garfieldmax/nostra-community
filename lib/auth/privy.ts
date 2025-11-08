@@ -1,10 +1,5 @@
 import { AppError } from "@/lib/errors";
-import {
-  SessionUser,
-  clearSessionCookie,
-  readSessionFromCookies,
-  readSessionFromRequest,
-} from "@/lib/auth/session";
+import { SessionUser, readSessionFromCookies, readSessionFromRequest } from "@/lib/auth/session";
 
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 
@@ -110,9 +105,17 @@ export async function fetchPrivyUser(token: string): Promise<SessionUser> {
   const linkedAccounts = normalizeLinkedAccounts(user.linked_accounts);
   const emailAccount = linkedAccounts.find((account) => account.type === "email");
 
+  const createdAtValue = user.created_at;
+  const createdAt =
+    typeof createdAtValue === "number"
+      ? createdAtValue >= 1e12
+        ? createdAtValue
+        : createdAtValue * 1000
+      : Date.now();
+
   const sessionUser: SessionUser = {
     id: user.id,
-    createdAt: user.created_at ?? Date.now(),
+    createdAt,
     linkedAccounts,
     email: emailAccount?.email,
   };
@@ -149,10 +152,6 @@ export async function optionalMember(request?: Request) {
     return null;
   }
   return { memberId: session.id, session };
-}
-
-export async function clearServerSession() {
-  await clearSessionCookie();
 }
 
 export function attachMemberToHeaders(response: Response, memberId: string) {
