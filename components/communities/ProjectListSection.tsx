@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { Project, Residency } from "@/lib/db/types";
 import { ProjectForm } from "@/components/projects/ProjectForm";
@@ -21,6 +21,19 @@ export function ProjectListSection({ communityId, residencies, projects, canMana
   const [projectList, setProjectList] = useState<Project[]>(projects);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    setProjectList(projects);
+  }, [projects]);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   function handleOpen() {
     setIsFormOpen(true);

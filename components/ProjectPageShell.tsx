@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Comment, Project, ProjectParticipation, Residency } from "@/lib/db/types";
 import { Card } from "@/components/ui/Card";
@@ -37,6 +37,19 @@ export function ProjectPageShell({
   const [isEditing, setIsEditing] = useState(false);
   const [approvingMemberId, setApprovingMemberId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    setProjectDetails(project);
+  }, [project]);
+
+  useEffect(() => {
+    setRoster(participants);
+  }, [participants]);
+
+  useEffect(() => {
+    setCommentList(comments);
+  }, [comments]);
+
   const viewerParticipation = useMemo(
     () => roster.find((participant) => participant.member_id === viewerId),
     [roster, viewerId]
