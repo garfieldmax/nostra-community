@@ -2,6 +2,29 @@
 
 This guide walks through the primary end-to-end flows enabled by the Nostra Community prototype. Each flow references the API routes, repository helpers, and UI surfaces that collaborate to deliver the experience.
 
+## Flow overview
+
+```mermaid
+flowchart TD
+    Landing[Visitor explores public pages] --> Login[/Privy login/]
+    Login --> Bootstrap{Member profile exists?}
+    Bootstrap -->|No| CreateProfile[Sync member record]
+    Bootstrap -->|Yes| ProfileRedirect[Return to requested page]
+    CreateProfile --> Welcome[Redirect to editable profile]
+    Welcome --> ProfileEdits[Update display name & bio]
+    ProfileEdits --> NextSteps{Where next?}
+    NextSteps --> Discover[Discover members & communities]
+    NextSteps --> Projects[Join or manage projects]
+    Projects --> Kudos[Give kudos]
+    Discover --> Connections[Build connections]
+    Connections --> Projects
+    Kudos --> RecognitionFeed[Feeds & reputation]
+    Projects --> Badges[Award badges]
+    RecognitionFeed --> Logout[Logout]
+    Badges --> Logout
+    Logout --> Landing
+```
+
 ## Authentication & session bootstrap
 
 1. Visitors can browse read-only routes like `/` and `/communities` without signing in. [`middleware.ts`](./middleware.ts) allows these paths but still attempts to resolve a Privy session so the `x-member-id` header is present when available.

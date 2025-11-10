@@ -2,6 +2,29 @@
 
 This document summarizes the relational model implemented in [`supabase/schema.sql`](./supabase/schema.sql) and mirrored in TypeScript through [`lib/db/types.ts`](./lib/db/types.ts) and the repository helpers in [`lib/db/repo.ts`](./lib/db/repo.ts).
 
+## High-level schema map
+
+```mermaid
+graph TD
+    Members((members)) --> Contacts(member_contacts)
+    Members --> Goals(member_goals)
+    Members --> Interests(member_interests)
+    Members --> Onboarding(onboarding_submissions)
+    Members --> Participation(project_participation)
+    Members --> Kudos((kudos))
+    Members --> Badges(member_badges)
+    Members --> Connections(member_connections)
+    Members --> Comments((comments))
+    InterestsTable((interests)) --> Interests
+    Communities((communities)) --> Residencies((residencies))
+    Communities --> Projects((projects))
+    Residencies --> Projects
+    Projects --> Participation
+    Projects --> Comments
+    Participation --> Kudos
+    BadgesCatalog((badges)) --> Badges
+```
+
 ## Core entities
 
 ### members

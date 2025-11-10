@@ -2,6 +2,20 @@
 
 This guide will help you set up your Nostra Community database and populate it with demo data.
 
+## Setup at a glance
+
+```mermaid
+flowchart LR
+    Env[Configure Supabase env vars] --> Tools[Install PostgreSQL client]
+    Tools --> Choice{Choose setup path}
+    Choice -->|Quick| QuickSetup[npm run db:setup]
+    Choice -->|Manual| Schema[Apply schema]
+    Schema --> Seed[Seed demo data]
+    QuickSetup --> Verify[Verify data in app]
+    Seed --> Verify
+    Verify --> Iterate[Customize data & explore flows]
+```
+
 ## Issues Fixed
 
 The following issues have been resolved:

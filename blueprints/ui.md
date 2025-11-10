@@ -2,6 +2,30 @@
 
 The Nostra Community prototype leans on Tailwind CSS and lightweight React components to deliver a cohesive member experience. This reference maps major pages to their supporting components and highlights reusable primitives.
 
+## Architectural snapshot
+
+```mermaid
+graph LR
+    Shell[Global layout & navigation] --> Header[SiteHeader]
+    Shell --> Nav[SiteNav]
+    Shell --> Primitives[UI primitives]
+    Primitives --> Buttons[Button]
+    Primitives --> Forms[Input/Textarea/Select]
+    Primitives --> Cards[Card]
+    Shell --> Pages{Page shells}
+    Pages --> MemberShell[MemberProfileShell]
+    Pages --> ProjectShell[ProjectPageShell]
+    MemberShell --> ProfilePage[/members/[id]]
+    ProjectShell --> ProjectPage[/projects/[id]]
+    Pages --> Auth[/login]
+    Pages --> Onboarding[/onboarding]
+    MemberShell --> Interactions{Interactive modules}
+    Interactions --> Kudos[GiveKudosModal]
+    Interactions --> Connect[ConnectSheet]
+    Interactions --> Comments[CommentsThread]
+    Interactions --> Discovery[DiscoveryList]
+```
+
 ## Global primitives
 
 - [`components/shell/SiteHeader.tsx`](./components/shell/SiteHeader.tsx) – persistent top navigation with Home link, auth-aware Members/Communities/Projects tabs, and the sign-in/user menu slot.
