@@ -70,7 +70,7 @@ export async function ensureProfile(user: User) {
   }
 
   if (!existingAfterConflict) {
-    throw error;
+    throw new Error(`Failed to refetch member with id ${user.id} after insert conflict.`);
   }
 
   return existingAfterConflict;
