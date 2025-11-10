@@ -5,16 +5,12 @@ import { getUser } from "@/lib/auth";
 import { ensureProfile } from "@/lib/profile";
 
 export async function requireOnboardedMember() {
-  const user = await getUser();
-  if (!user) {
+  const status = await getOnboardingStatus();
+  if (!status.user) {
     redirect("/login");
   }
 
-  const memberRecord = await ensureProfile(user);
-  const member = await getMember(memberRecord.id);
-  const submission = await getOnboardingSubmission(memberRecord.id);
-
-  return { user, member: member ?? null, submission } as const;
+  return status;
 }
 
 export async function getOnboardingStatus() {
