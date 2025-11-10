@@ -3,9 +3,9 @@
 Nostra Community is a members-first collaboration platform that connects residents, alumni, and collaborators across communities, residencies, and projects. This documentation set explains how the prototype is structured and how to operate the core platform experiences implemented in this repository.
 
 - [`readme.MD`](./readme.MD) – product overview (this file)
-- [`data.MD`](./data.MD) – database schema and persistence notes
-- [`flow.MD`](./flow.MD) – end-to-end member, project, kudos, and badge flows
-- [`UI.MD`](./UI.MD) – application surfaces and shared UI components
+- [`blueprints/data.MD`](./blueprints/data.MD) – database schema and persistence notes
+- [`blueprints/flow.MD`](./blueprints/flow.MD) – end-to-end member, project, kudos, and badge flows
+- [`blueprints/UI.MD`](./blueprints/UI.MD) – application surfaces and shared UI components
 - [`supabase/reset_schema.sql`](./supabase/reset_schema.sql) – SQL script to drop any legacy schema and apply the current ERD
 
 ## Platform pillars

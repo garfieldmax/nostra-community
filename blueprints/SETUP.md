@@ -212,7 +212,7 @@ Once your database is set up and you can see the demo data:
 
 ## Additional Resources
 
-- [Nostra Community README](./README.md) - Product overview
+- [Nostra Community README](../readme.MD) - Product overview
 - [Data Model](./data.MD) - Database schema documentation
 - [User Flows](./flow.MD) - Application flows and features
 - [UI Documentation](./UI.MD) - Component library and surfaces
