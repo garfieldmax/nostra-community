@@ -23,6 +23,8 @@ function LoginForm() {
       // Sync auth token to server-side cookie before redirecting
       getAccessToken()
         .then(async (token) => {
+          const redirect = searchParams.get("redirect");
+
           if (token) {
             const result = await syncAuthToken(token);
             if (!result.success) {
@@ -31,10 +33,14 @@ function LoginForm() {
               redirectingRef.current = false;
               return;
             }
+
+            if (result.isNewMember) {
+              router.push(`/members/${encodeURIComponent(result.memberId)}?welcome=1`);
+              return;
+            }
           }
-          
+
           // Navigate after successful token sync
-          const redirect = searchParams.get("redirect");
           router.push(redirect || "/");
         })
         .catch((err) => {

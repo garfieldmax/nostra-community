@@ -1,6 +1,8 @@
 import type { User } from "@/lib/auth";
 import { supabaseServer } from "@/lib/supabaseServer";
 
+type EnsureProfileResult = { id: string; isNew: boolean };
+
 function deriveDisplayName(user: User) {
   if (user.email) {
     return user.email.split("@")[0] ?? "User";
@@ -17,7 +19,7 @@ function deriveDisplayName(user: User) {
   return "User";
 }
 
-export async function ensureProfile(user: User) {
+export async function ensureProfile(user: User): Promise<EnsureProfileResult> {
   const supabase = await supabaseServer();
 
   const { data: existing, error: fetchError } = await supabase
@@ -31,7 +33,7 @@ export async function ensureProfile(user: User) {
   }
 
   if (existing) {
-    return existing;
+    return { ...existing, isNew: false } as const;
   }
 
   const displayName = deriveDisplayName(user);
@@ -49,7 +51,7 @@ export async function ensureProfile(user: User) {
 
   if (!error) {
     if (data) {
-      return data;
+      return { ...data, isNew: true } as const;
     }
 
     throw new Error("Member insert succeeded without returning a record");
@@ -73,5 +75,5 @@ export async function ensureProfile(user: User) {
     throw new Error(`Failed to refetch member with id ${user.id} after insert conflict.`);
   }
 
-  return existingAfterConflict;
+  return { ...existingAfterConflict, isNew: false } as const;
 }

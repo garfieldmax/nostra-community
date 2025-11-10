@@ -2,11 +2,35 @@
 
 This guide walks through the primary end-to-end flows enabled by the Nostra Community prototype. Each flow references the API routes, repository helpers, and UI surfaces that collaborate to deliver the experience.
 
+## Flow overview
+
+```mermaid
+flowchart TD
+    Landing[Visitor explores public pages] --> Login[/Privy login/]
+    Login --> Bootstrap{Member profile exists?}
+    Bootstrap -->|No| CreateProfile[Sync member record]
+    Bootstrap -->|Yes| ProfileRedirect[Return to requested page]
+    CreateProfile --> Welcome[Redirect to editable profile]
+    Welcome --> ProfileEdits[Update display name & bio]
+    ProfileEdits --> NextSteps{Where next?}
+    NextSteps --> Discover[Discover members & communities]
+    NextSteps --> Projects[Join or manage projects]
+    Projects --> Kudos[Give kudos]
+    Discover --> Connections[Build connections]
+    Connections --> Projects
+    Kudos --> RecognitionFeed[Feeds & reputation]
+    Projects --> Badges[Award badges]
+    RecognitionFeed --> Logout[Logout]
+    Badges --> Logout
+    Logout --> Landing
+```
+
 ## Authentication & session bootstrap
 
 1. Visitors can browse read-only routes like `/` and `/communities` without signing in. [`middleware.ts`](./middleware.ts) allows these paths but still attempts to resolve a Privy session so the `x-member-id` header is present when available.
 2. When a visitor lands on `/login` and authenticates via Privy, the client redirects back to the requested path (default `/`).
 3. Post-authentication, [`lib/onboarding.ts`](./lib/onboarding.ts) ensures the member record exists for the authenticated Privy user so protected routes have a stable `member_id` to operate with. Access is no longer gated on completing the onboarding questionnaire; communities can invite members to that flow separately when needed.
+4. If the profile record is newly created during this sync, [`app/(auth)/login/page.tsx`](../app/(auth)/login/page.tsx) sends the member straight to `/members/[id]?welcome=1`, where [`components/MemberProfileShell.tsx`](../components/MemberProfileShell.tsx) focuses the editable fields and surfaces a welcome toast nudging them to fill in their details. *Suggested next iteration:* once the first save completes, offer contextual CTAs (e.g., add contact links or explore communities) to keep the momentum going.
 
 ## Onboarding questionnaire
 
@@ -17,8 +41,9 @@ This guide walks through the primary end-to-end flows enabled by the Nostra Comm
 ## Member profile management
 
 1. Members load `/members/[id]`, which renders [`components/MemberProfileShell.tsx`](./components/MemberProfileShell.tsx) to combine profile, contacts, badges, projects, kudos feed, and comments.
-2. Inline edit controls trigger route handlers under `/api/members/[id]/*`, which validate input with [`lib/db/validators.ts`](./lib/db/validators.ts) and call repository helpers.
-3. Public visitors see only public contacts and goals; private goals are filtered server-side.
+2. Fields marked with the pen icon (`display_name`, `bio`) are editable inline for the signed-in member and save through `/api/members/[id]` while previewing changes in the profile card.
+3. Inline edit controls trigger route handlers under `/api/members/[id]/*`, which validate input with [`lib/db/validators.ts`](./lib/db/validators.ts) and call repository helpers.
+4. Public visitors see only public contacts and goals; private goals are filtered server-side.
 
 ## Connections & mutual discovery
 

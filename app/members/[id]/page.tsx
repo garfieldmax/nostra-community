@@ -16,11 +16,12 @@ import { requireOnboardedMember } from "@/lib/onboarding";
 
 interface MemberPageProps {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export const dynamic = "force-dynamic";
 
-export default async function MemberPage({ params }: MemberPageProps) {
+export default async function MemberPage({ params, searchParams }: MemberPageProps) {
   await requireOnboardedMember();
   const { id } = await params;
   const memberId = decodeURIComponent(id);
@@ -28,6 +29,13 @@ export default async function MemberPage({ params }: MemberPageProps) {
   if (!member) {
     notFound();
   }
+
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const welcomeParam = resolvedSearchParams?.welcome;
+  const initialToast =
+    typeof welcomeParam === "string"
+      ? "Welcome! Please complete your profile so the community can get to know you."
+      : null;
 
   const [contacts, badges, interests, goals, kudos, participations, comments] = await Promise.all([
     listMemberContacts(member.id),
@@ -56,6 +64,7 @@ export default async function MemberPage({ params }: MemberPageProps) {
         comments={comments}
         participations={participations}
         mutuals={mutuals}
+        initialToast={initialToast}
       />
     </div>
   );

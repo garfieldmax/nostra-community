@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { SVGProps } from "react";
 import type {
   Comment,
   Interest,
@@ -25,6 +26,15 @@ import { ConnectSheet } from "@/components/ConnectSheet";
 import { CommentsThread } from "@/components/CommentsThread";
 import { KudosFeed } from "@/components/KudosFeed";
 
+function PenIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" />
+      <path d="M14.06 6.19l2.12-2.12a1.5 1.5 0 0 1 2.12 0l1.63 1.63a1.5 1.5 0 0 1 0 2.12l-2.12 2.12" />
+    </svg>
+  );
+}
+
 interface MemberProfileShellProps {
   viewerId: string | null;
   member: Member;
@@ -36,6 +46,7 @@ interface MemberProfileShellProps {
   comments: Comment[];
   participations: ProjectParticipation[];
   mutuals: Member[];
+  initialToast?: string | null;
 }
 
 export function MemberProfileShell({
@@ -49,17 +60,51 @@ export function MemberProfileShell({
   comments,
   participations,
   mutuals,
+  initialToast = null,
 }: MemberProfileShellProps) {
+  const [profileMember, setProfileMember] = useState(member);
   const [kudosList, setKudosList] = useState(kudos);
   const [goalsList, setGoalsList] = useState(goals);
+  const [displayName, setDisplayName] = useState(member.display_name);
   const [bio, setBio] = useState(member.bio ?? "");
   const [newGoal, setNewGoal] = useState({ title: "", privacy: "public" as "public" | "private" });
-  const [isSavingBio, setIsSavingBio] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [toast, setToast] = useState<string | null>(initialToast);
   const [isKudosOpen, setIsKudosOpen] = useState(false);
   const [isConnectOpen, setIsConnectOpen] = useState(false);
   const [commentsList, setCommentsList] = useState(comments);
+  const editSectionRef = useRef<HTMLDivElement | null>(null);
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
   const isSelf = viewerId === member.id;
+
+  useEffect(() => {
+    if (initialToast) {
+      setToast(initialToast);
+      nameInputRef.current?.focus();
+      editSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [initialToast]);
+
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setToast(null), 6000);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  useEffect(() => {
+    if (member.id !== profileMember.id) {
+      // New member, reset everything.
+      setProfileMember(member);
+      setDisplayName(member.display_name);
+      setBio(member.bio ?? "");
+    } else if (member !== profileMember) {
+      // Same member, props updated. Only update base, not form fields.
+      setProfileMember(member);
+    }
+  }, [member, profileMember]);
 
   const projectsForKudos = Array.from(
     new Map(
@@ -105,24 +150,34 @@ export function MemberProfileShell({
     setToast("Connection request sent");
   }
 
-  async function handleBioSave() {
-    setIsSavingBio(true);
+  const hasProfileChanges =
+    displayName.trim() !== profileMember.display_name || bio !== (profileMember.bio ?? "");
+
+  async function handleProfileSave() {
+    const trimmedDisplayName = displayName.trim();
+    if (!trimmedDisplayName) {
+      setToast("Display name is required");
+      return;
+    }
+
+    setIsSavingProfile(true);
     setToast(null);
     try {
       const response = await fetch(`/api/members/${member.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bio }),
+        body: JSON.stringify({ bio, display_name: trimmedDisplayName }),
       });
       const data = await response.json();
       if (!response.ok || !data.ok) {
-        throw new Error(data?.error?.message ?? "Failed to update bio");
+        throw new Error(data?.error?.message ?? "Failed to update profile");
       }
+      setProfileMember((prev) => ({ ...prev, display_name: trimmedDisplayName, bio }));
       setToast("Profile updated");
     } catch (error) {
       setToast(error instanceof Error ? error.message : "Failed to update profile");
     } finally {
-      setIsSavingBio(false);
+      setIsSavingProfile(false);
     }
   }
 
@@ -163,11 +218,16 @@ export function MemberProfileShell({
     <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
       <div className="space-y-4">
         <ProfileCard
-          member={{ ...member, bio }}
+          member={{
+            ...profileMember,
+            bio: isSelf ? bio : profileMember.bio,
+            display_name: isSelf ? displayName : profileMember.display_name,
+          }}
           mutuals={mutuals}
           isSelf={isSelf}
           onGiveKudos={viewerId ? () => setIsKudosOpen(true) : undefined}
           onConnect={viewerId && viewerId !== member.id ? () => setIsConnectOpen(true) : undefined}
+          onEdit={isSelf ? () => editSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }) : undefined}
         />
         <div className="space-y-4">
           <div>
@@ -181,20 +241,53 @@ export function MemberProfileShell({
         </div>
       </div>
       <div className="space-y-6">
-        <section className="space-y-2">
+        <section ref={editSectionRef} className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Bio</h2>
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Profile details</h2>
+              {isSelf && (
+                <p className="text-xs text-slate-500">Fields marked with the pen icon are editable.</p>
+              )}
+            </div>
             {isSelf && (
-              <Button size="sm" onClick={handleBioSave} disabled={isSavingBio}>
-                {isSavingBio ? "Saving..." : "Save"}
+              <Button size="sm" onClick={handleProfileSave} disabled={isSavingProfile || !hasProfileChanges}>
+                {isSavingProfile ? "Saving..." : "Save changes"}
               </Button>
             )}
           </div>
           {isSelf ? (
-            <Textarea value={bio} onChange={(event) => setBio(event.target.value)} rows={4} />
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label htmlFor="displayName" className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                  <PenIcon className="h-4 w-4 text-slate-400" aria-hidden />
+                  Display name
+                </label>
+                <Input
+                  id="displayName"
+                  ref={nameInputRef}
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  placeholder="Your preferred name"
+                />
+              </div>
+              <div className="space-y-1">
+                <label htmlFor="bio" className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                  <PenIcon className="h-4 w-4 text-slate-400" aria-hidden />
+                  Bio
+                </label>
+                <Textarea
+                  id="bio"
+                  value={bio}
+                  onChange={(event) => setBio(event.target.value)}
+                  rows={4}
+                  placeholder="Share a quick intro so others know how to collaborate with you"
+                />
+              </div>
+            </div>
           ) : (
-            <Card padding="sm" className="text-sm text-slate-600">
-              {bio || "No bio yet."}
+            <Card padding="sm" className="space-y-2 text-sm text-slate-600">
+              <p className="font-semibold text-slate-900">{displayName}</p>
+              <p>{bio || "No bio yet."}</p>
             </Card>
           )}
         </section>

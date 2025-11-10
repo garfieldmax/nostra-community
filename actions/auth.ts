@@ -11,6 +11,7 @@ import {
   signSession,
 } from "@/lib/auth/session";
 import { AppError } from "@/lib/errors";
+import { ensureProfile } from "@/lib/profile";
 
 const LEGACY_PRIVY_COOKIES = [
   "privy-access-token",
@@ -41,6 +42,7 @@ export async function syncAuthToken(token: string) {
     const cookieStore = await cookies();
     clearLegacyCookies(cookieStore);
 
+    const profile = await ensureProfile(user);
     const { token: sessionToken } = await signSession(user, SESSION_MAX_AGE_SECONDS);
     cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
       path: "/",
@@ -50,7 +52,7 @@ export async function syncAuthToken(token: string) {
       secure: process.env.NODE_ENV === "production",
     });
 
-    return { success: true, memberId: user.id } as const;
+    return { success: true, memberId: user.id, isNewMember: profile.isNew } as const;
   } catch (error) {
     console.error("[syncAuthToken] Failed to verify Privy token", error);
     if (error instanceof AppError) {
@@ -82,5 +84,5 @@ export async function logout() {
   clearLegacyCookies(cookieStore);
   await clearSessionCookie();
 
-  redirect("/login");
+  redirect("/");
 }
