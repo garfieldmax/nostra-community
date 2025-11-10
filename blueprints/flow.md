@@ -6,13 +6,13 @@ This guide walks through the primary end-to-end flows enabled by the Nostra Comm
 
 1. Visitors can browse read-only routes like `/` and `/communities` without signing in. [`middleware.ts`](./middleware.ts) allows these paths but still attempts to resolve a Privy session so the `x-member-id` header is present when available.
 2. When a visitor lands on `/login` and authenticates via Privy, the client redirects back to the requested path (default `/`).
-3. Post-authentication, [`lib/onboarding.ts`](./lib/onboarding.ts) ensures the member record exists and checks for an onboarding submission before granting access to protected surfaces. Requests without a completed submission are redirected to `/onboarding`.
+3. Post-authentication, [`lib/onboarding.ts`](./lib/onboarding.ts) ensures the member record exists for the authenticated Privy user so protected routes have a stable `member_id` to operate with. Access is no longer gated on completing the onboarding questionnaire; communities can invite members to that flow separately when needed.
 
 ## Onboarding questionnaire
 
-1. Newly authenticated members are routed to [`/onboarding`](./app/onboarding/page.tsx) to complete the required intake form.
+1. Communities can direct members to [`/onboarding`](./app/onboarding/page.tsx) to complete the intake form when they join a specific space.
 2. The form posts to [`actions/onboarding.ts`](./actions/onboarding.ts), which validates input with [`OnboardingSubmissionSchema`](./lib/db/validators.ts), upserts into `onboarding_submissions`, and updates the member display name.
-3. Successful submissions revalidate member-centric routes and return the user to `/`, unlocking Members navigation and discovery tools.
+3. Successful submissions revalidate member-centric routes and return the user to `/`, but general navigation remains available regardless of completion.
 
 ## Member profile management
 

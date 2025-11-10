@@ -47,9 +47,31 @@ export async function ensureProfile(user: User) {
     .select("id")
     .single();
 
-  if (error) {
+  if (!error) {
+    if (data) {
+      return data;
+    }
+
+    throw new Error("Member insert succeeded without returning a record");
+  }
+
+  if (error.code !== "23505") {
     throw error;
   }
 
-  return data;
+  const { data: existingAfterConflict, error: refetchError } = await supabase
+    .from("members")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (refetchError) {
+    throw refetchError;
+  }
+
+  if (!existingAfterConflict) {
+    throw error;
+  }
+
+  return existingAfterConflict;
 }

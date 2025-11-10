@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-
 import { Card } from "@/components/ui/Card";
 import { CommunitySearchList } from "@/components/communities/CommunitySearchList";
 import { listMembers, listCommunities } from "@/lib/db/repo";
@@ -14,13 +12,9 @@ type HomePageProps = {
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
-  const { user, submission } = await getOnboardingStatus();
+  const { user } = await getOnboardingStatus();
 
-  if (user && !submission) {
-    redirect("/onboarding");
-  }
-
-  const canSeeMembers = Boolean(user && submission);
+  const canSeeMembers = Boolean(user);
   const tabParam = Array.isArray(params?.tab) ? params?.tab[0] : params?.tab;
   const requestedTab = tabParam === "members" ? "members" : "communities";
   const tab = canSeeMembers ? requestedTab : "communities";
