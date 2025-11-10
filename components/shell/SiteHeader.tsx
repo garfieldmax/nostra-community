@@ -34,7 +34,7 @@ export async function SiteHeader() {
     memberName: member?.display_name ?? null,
     email,
   });
-  const canSeeMembers = Boolean(user && submission);
+  const canSeeMembers = Boolean(user);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[100] border-b bg-white shadow-sm md:static md:shadow-none">

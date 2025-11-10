@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 
 import { getUser } from "@/lib/auth";
 import { ensureProfile } from "@/lib/profile";
-import { getOnboardingSubmission } from "@/lib/db/repo";
 
 // Mark dashboard routes as dynamic since they use cookies for authentication
 export const dynamic = 'force-dynamic';
@@ -26,11 +25,7 @@ export default async function DashboardGroupLayout({
   }
 
   try {
-    const record = await ensureProfile(user);
-    const submission = await getOnboardingSubmission(record.id);
-    if (!submission) {
-      redirect("/onboarding");
-    }
+    await ensureProfile(user);
   } catch (error) {
     console.error("[DashboardGroupLayout] Error ensuring profile:", error);
   }

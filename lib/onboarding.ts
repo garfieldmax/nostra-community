@@ -10,10 +10,6 @@ export async function requireOnboardedMember() {
     redirect("/login");
   }
 
-  if (!status.submission) {
-    redirect("/onboarding");
-  }
-
   return status;
 }
 

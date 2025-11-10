@@ -5,7 +5,7 @@ The Nostra Community prototype leans on Tailwind CSS and lightweight React compo
 ## Global primitives
 
 - [`components/shell/SiteHeader.tsx`](./components/shell/SiteHeader.tsx) – persistent top navigation with Home link, auth-aware Members/Communities/Projects tabs, and the sign-in/user menu slot.
-- [`components/shell/SiteNav.tsx`](./components/shell/SiteNav.tsx) – client-side navigation pill set that highlights the active section by path/query, now including a Projects tab for onboarded members.
+- [`components/shell/SiteNav.tsx`](./components/shell/SiteNav.tsx) – client-side navigation pill set that highlights the active section by path/query, including a Projects tab for signed-in members.
 - [`components/ui/Button.tsx`](./components/ui/Button.tsx) – primary, secondary, and subtle button variants using Tailwind utility classes.
 - [`components/ui/Card.tsx`](./components/ui/Card.tsx) – shared card container with padding, rounded corners, and responsive shadow states.
 - [`components/ui/Input.tsx`](./components/ui/Input.tsx), [`Textarea.tsx`](./components/ui/Textarea.tsx), [`Select.tsx`](./components/ui/Select.tsx) – form controls styled for dark/light parity and consistent spacing.
@@ -21,7 +21,7 @@ The Nostra Community prototype leans on Tailwind CSS and lightweight React compo
 | Route | Purpose | Notable Components |
 | --- | --- | --- |
 | `/login` | Privy authentication entry point. | Privy login button (embedded), Tailwind layout defined directly in [`app/(auth)/login/page.tsx`](./app/(auth)/login/page.tsx). |
-| `/onboarding` | Intake form required after authentication. | [`actions/onboarding.ts`](./actions/onboarding.ts), Input/Textarea primitives, Card shell. |
+| `/onboarding` | Intake form communities can trigger post-join. | [`actions/onboarding.ts`](./actions/onboarding.ts), Input/Textarea primitives, Card shell. |
 | `/` | Home with auth-aware Members/Communities feed and community search. | Card primitives, Input for search, Profile avatar rendering within the member list. |
 | `/members/[id]` | Full member profile with actions. | ProfileCard, [`components/ContactsList.tsx`](./components/ContactsList.tsx), [`components/BadgesList.tsx`](./components/BadgesList.tsx), [`components/InterestsChips.tsx`](./components/InterestsChips.tsx), [`components/GoalsList.tsx`](./components/GoalsList.tsx), [`components/KudosFeed.tsx`](./components/KudosFeed.tsx), [`components/CommentsThread.tsx`](./components/CommentsThread.tsx), [`components/GiveKudosModal.tsx`](./components/GiveKudosModal.tsx), [`components/ConnectSheet.tsx`](./components/ConnectSheet.tsx). |
 | `/projects` | Member-specific project hub listing active participations. | [`app/projects/page.tsx`](./app/projects/page.tsx), Card primitives. |
