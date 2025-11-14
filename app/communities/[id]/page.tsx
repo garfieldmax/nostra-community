@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getCommunityWithChildren, listResidencies, listProjects } from "@/lib/db/repo";
 import { Card } from "@/components/ui/Card";
 import { ProjectListSection } from "@/components/communities/ProjectListSection";
+import { AskCommunityAI } from "@/components/communities/AskCommunityAI";
 import { getOnboardingStatus } from "@/lib/onboarding";
 
 interface CommunityPageProps {
@@ -28,6 +29,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
         <h1 className="text-3xl font-semibold text-slate-900">{community.name}</h1>
         {community.description && <p className="text-sm text-slate-600">{community.description}</p>}
       </header>
+      <AskCommunityAI />
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-slate-900">Residencies</h2>
         {residencies.length === 0 ? (

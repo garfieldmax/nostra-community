@@ -49,7 +49,13 @@ export async function SiteHeader() {
             <SiteNav canSeeMembers={canSeeMembers} />
           </Suspense>
         </div>
-        <div className="flex flex-1 justify-end">
+        <div className="flex flex-1 items-center justify-end gap-4">
+          <Link
+            href="/about"
+            className="text-sm font-medium text-slate-600 hover:text-slate-900 transition"
+          >
+            About
+          </Link>
           {user ? (
             <UserMenu user={{ displayName, email }} memberId={member?.id ?? null} />
           ) : (

@@ -83,6 +83,13 @@ export function UserMenu({ user, memberId }: UserMenuProps) {
                 Edit Profile
               </Link>
             )}
+            <Link
+              href="/export-data"
+              onClick={() => setIsOpen(false)}
+              className="block w-full px-4 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              Export Data
+            </Link>
             <button
               onClick={handleLogout}
               disabled={isLoggingOut}
